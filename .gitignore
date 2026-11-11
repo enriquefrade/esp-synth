@@ -1,0 +1,25 @@
+# Arduino / arduino-cli build output
+build/
+*.elf
+*.bin
+*.map
+*.o
+*.a
+firmware/synth/build/
+firmware/**/__pycache__/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Editors and OS
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*~
+
+# Local scratch
+scratchpad/
+*.log

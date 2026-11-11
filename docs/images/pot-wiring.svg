@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="780" viewBox="0 0 1000 780">
+<rect width="1000" height="780" fill="#f8f9fa"/>
+<text x="500" y="42" text-anchor="middle" font-family="Helvetica,Arial" font-size="22" font-weight="bold" fill="#1d3557">Potentiometer wiring, header P1</text>
+<text x="500" y="66" text-anchor="middle" font-family="Helvetica,Arial" font-size="14" fill="#457b9d">Same wiring for all three pots. Use 10k linear pots.</text>
+<text x="300" y="80" text-anchor="middle" font-family="Helvetica,Arial" font-size="16" font-weight="bold" fill="#1d3557">POT 1 (frequency)</text>
+<circle cx="300" cy="190" r="34" fill="#e9ecef" stroke="#1d3557" stroke-width="3"/>
+<line x1="300" y1="190" x2="322" y2="168" stroke="#e63946" stroke-width="4" stroke-linecap="round"/>
+<line x1="300" y1="156" x2="300" y2="136" stroke="#1d3557" stroke-width="2.5"/>
+<rect x="225.0" y="100" width="150" height="36" rx="4" fill="#ffffff" stroke="#1d3557" stroke-width="2"/><text x="300" y="118" text-anchor="middle" font-family="Helvetica,Arial" font-size="16" font-weight="bold" fill="#1d3557">3V3</text><text x="300" y="132" text-anchor="middle" font-family="Helvetica,Arial" font-size="12" fill="#457b9d">P1 pin 1</text>
+<line x1="300" y1="224" x2="300" y2="244" stroke="#1d3557" stroke-width="2.5"/>
+<rect x="225.0" y="244" width="150" height="36" rx="4" fill="#ffffff" stroke="#1d3557" stroke-width="2"/><text x="300" y="262" text-anchor="middle" font-family="Helvetica,Arial" font-size="16" font-weight="bold" fill="#1d3557">GND</text><text x="300" y="276" text-anchor="middle" font-family="Helvetica,Arial" font-size="12" fill="#457b9d">P1 pin 3</text>
+<line x1="334" y1="190" x2="500" y2="190" stroke="#e63946" stroke-width="2.5"/>
+<line x1="500" y1="190" x2="585" y2="190" stroke="#e63946" stroke-width="2.5"/>
+<circle cx="500" cy="190" r="4" fill="#1d3557"/>
+<rect x="585.0" y="172" width="150" height="36" rx="4" fill="#ffffff" stroke="#1d3557" stroke-width="2"/><text x="660" y="190" text-anchor="middle" font-family="Helvetica,Arial" font-size="16" font-weight="bold" fill="#1d3557">GPIO1</text><text x="660" y="204" text-anchor="middle" font-family="Helvetica,Arial" font-size="12" fill="#457b9d">P1 pin 7</text>
+<line x1="500" y1="190" x2="500" y2="208" stroke="#1d3557" stroke-width="2.5"/>
+<line x1="486" y1="208" x2="514" y2="208" stroke="#1d3557" stroke-width="3"/>
+<line x1="486" y1="216" x2="514" y2="216" stroke="#1d3557" stroke-width="3"/>
+<line x1="500" y1="216" x2="500" y2="240" stroke="#1d3557" stroke-width="2.5"/>
+<line x1="500" y1="240" x2="300" y2="240" stroke="#1d3557" stroke-width="2.5"/>
+<text x="518" y="226" font-family="Helvetica,Arial" font-size="12" fill="#457b9d">100nF (optional)</text>
+<text x="300" y="300" text-anchor="middle" font-family="Helvetica,Arial" font-size="16" font-weight="bold" fill="#1d3557">POT 2 (level)</text>
+<circle cx="300" cy="410" r="34" fill="#e9ecef" stroke="#1d3557" stroke-width="3"/>
+<line x1="300" y1="410" x2="322" y2="388" stroke="#e63946" stroke-width="4" stroke-linecap="round"/>
+<line x1="300" y1="376" x2="300" y2="356" stroke="#1d3557" stroke-width="2.5"/>
+<rect x="225.0" y="320" width="150" height="36" rx="4" fill="#ffffff" stroke="#1d3557" stroke-width="2"/><text x="300" y="338" text-anchor="middle" font-family="Helvetica,Arial" font-size="16" font-weight="bold" fill="#1d3557">3V3</text><text x="300" y="352" text-anchor="middle" font-family="Helvetica,Arial" font-size="12" fill="#457b9d">P1 pin 1</text>
+<line x1="300" y1="444" x2="300" y2="464" stroke="#1d3557" stroke-width="2.5"/>
+<rect x="225.0" y="464" width="150" height="36" rx="4" fill="#ffffff" stroke="#1d3557" stroke-width="2"/><text x="300" y="482" text-anchor="middle" font-family="Helvetica,Arial" font-size="16" font-weight="bold" fill="#1d3557">GND</text><text x="300" y="496" text-anchor="middle" font-family="Helvetica,Arial" font-size="12" fill="#457b9d">P1 pin 3</text>
+<line x1="334" y1="410" x2="500" y2="410" stroke="#e63946" stroke-width="2.5"/>
+<line x1="500" y1="410" x2="585" y2="410" stroke="#e63946" stroke-width="2.5"/>
+<circle cx="500" cy="410" r="4" fill="#1d3557"/>
+<rect x="585.0" y="392" width="150" height="36" rx="4" fill="#ffffff" stroke="#1d3557" stroke-width="2"/><text x="660" y="410" text-anchor="middle" font-family="Helvetica,Arial" font-size="16" font-weight="bold" fill="#1d3557">GPIO2</text><text x="660" y="424" text-anchor="middle" font-family="Helvetica,Arial" font-size="12" fill="#457b9d">P1 pin 9</text>
+<line x1="500" y1="410" x2="500" y2="428" stroke="#1d3557" stroke-width="2.5"/>
+<line x1="486" y1="428" x2="514" y2="428" stroke="#1d3557" stroke-width="3"/>
+<line x1="486" y1="436" x2="514" y2="436" stroke="#1d3557" stroke-width="3"/>
+<line x1="500" y1="436" x2="500" y2="460" stroke="#1d3557" stroke-width="2.5"/>
+<line x1="500" y1="460" x2="300" y2="460" stroke="#1d3557" stroke-width="2.5"/>
+<text x="518" y="446" font-family="Helvetica,Arial" font-size="12" fill="#457b9d">100nF (optional)</text>
+<text x="300" y="520" text-anchor="middle" font-family="Helvetica,Arial" font-size="16" font-weight="bold" fill="#1d3557">POT 3 (detune)</text>
+<circle cx="300" cy="630" r="34" fill="#e9ecef" stroke="#1d3557" stroke-width="3"/>
+<line x1="300" y1="630" x2="322" y2="608" stroke="#e63946" stroke-width="4" stroke-linecap="round"/>
+<line x1="300" y1="596" x2="300" y2="576" stroke="#1d3557" stroke-width="2.5"/>
+<rect x="225.0" y="540" width="150" height="36" rx="4" fill="#ffffff" stroke="#1d3557" stroke-width="2"/><text x="300" y="558" text-anchor="middle" font-family="Helvetica,Arial" font-size="16" font-weight="bold" fill="#1d3557">3V3</text><text x="300" y="572" text-anchor="middle" font-family="Helvetica,Arial" font-size="12" fill="#457b9d">P1 pin 1</text>
+<line x1="300" y1="664" x2="300" y2="684" stroke="#1d3557" stroke-width="2.5"/>
+<rect x="225.0" y="684" width="150" height="36" rx="4" fill="#ffffff" stroke="#1d3557" stroke-width="2"/><text x="300" y="702" text-anchor="middle" font-family="Helvetica,Arial" font-size="16" font-weight="bold" fill="#1d3557">GND</text><text x="300" y="716" text-anchor="middle" font-family="Helvetica,Arial" font-size="12" fill="#457b9d">P1 pin 3</text>
+<line x1="334" y1="630" x2="500" y2="630" stroke="#e63946" stroke-width="2.5"/>
+<line x1="500" y1="630" x2="585" y2="630" stroke="#e63946" stroke-width="2.5"/>
+<circle cx="500" cy="630" r="4" fill="#1d3557"/>
+<rect x="585.0" y="612" width="150" height="36" rx="4" fill="#ffffff" stroke="#1d3557" stroke-width="2"/><text x="660" y="630" text-anchor="middle" font-family="Helvetica,Arial" font-size="16" font-weight="bold" fill="#1d3557">GPIO3</text><text x="660" y="644" text-anchor="middle" font-family="Helvetica,Arial" font-size="12" fill="#457b9d">P1 pin 11</text>
+<line x1="500" y1="630" x2="500" y2="648" stroke="#1d3557" stroke-width="2.5"/>
+<line x1="486" y1="648" x2="514" y2="648" stroke="#1d3557" stroke-width="3"/>
+<line x1="486" y1="656" x2="514" y2="656" stroke="#1d3557" stroke-width="3"/>
+<line x1="500" y1="656" x2="500" y2="680" stroke="#1d3557" stroke-width="2.5"/>
+<line x1="500" y1="680" x2="300" y2="680" stroke="#1d3557" stroke-width="2.5"/>
+<text x="518" y="666" font-family="Helvetica,Arial" font-size="12" fill="#457b9d">100nF (optional)</text>
+<text x="500" y="752" text-anchor="middle" font-family="Helvetica,Arial" font-size="13" fill="#457b9d">GPIO1-3 are ADC1 inputs. Wire pots to the 3V3 rail only, never 5 V.</text>
+</svg>

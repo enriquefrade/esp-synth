@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ESP Synth Control</title>
+<style>
+  :root { --bg:#0f1420; --panel:#182032; --ink:#e6edf7; --dim:#8a97ad; --acc:#4cc2ff; --on:#3ddc97; --off:#4a5568; --warn:#ffb020; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: -apple-system, Helvetica, Arial, sans-serif; background:var(--bg); color:var(--ink); }
+  header { display:flex; align-items:center; gap:12px; padding:12px 18px; background:var(--panel); border-bottom:1px solid #243049; flex-wrap:wrap; }
+  header h1 { font-size:18px; margin:0 12px 0 0; }
+  button { font:inherit; color:var(--ink); background:#243049; border:1px solid #33415c; border-radius:6px; padding:7px 12px; cursor:pointer; }
+  button:hover { border-color:var(--acc); }
+  button.active { background:var(--acc); color:#06121f; border-color:var(--acc); }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  #status { font-size:13px; color:var(--dim); }
+  #status.ok { color:var(--on); }
+  #status.err { color:var(--warn); }
+  main { display:grid; grid-template-columns: 1fr; gap:16px; padding:16px 18px; max-width:1100px; margin:0 auto; }
+  section { background:var(--panel); border:1px solid #243049; border-radius:10px; padding:14px 16px; }
+  section h2 { font-size:14px; text-transform:uppercase; letter-spacing:.08em; color:var(--dim); margin:0 0 12px; }
+  .voices { display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; }
+  .voice { background:#111827; border:2px solid #243049; border-radius:10px; padding:12px; }
+  .voice.sel { border-color:var(--acc); }
+  .voice .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .voice .name { font-weight:600; }
+  .pill { font-size:12px; padding:3px 8px; border-radius:999px; background:var(--off); }
+  .pill.on { background:var(--on); color:#06201a; }
+  .readout { font-family: ui-monospace, Menlo, monospace; font-size:13px; color:var(--dim); margin:6px 0 10px; min-height:18px; }
+  label { display:block; font-size:12px; color:var(--dim); margin-top:10px; }
+  label span { float:right; font-family: ui-monospace, Menlo, monospace; color:var(--ink); }
+  input[type=range] { width:100%; accent-color:var(--acc); }
+  select { width:100%; font:inherit; color:var(--ink); background:#0b1020; border:1px solid #33415c; border-radius:6px; padding:6px; margin-top:6px; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .wave-btns button { flex:1; padding:6px 0; font-size:12px; }
+  .keys { position:relative; height:170px; user-select:none; touch-action:none; }
+  .wk { position:absolute; top:0; height:100%; width:calc(100% / 8); background:#f4f6fa; border:1px solid #9aa5b8; border-radius:0 0 6px 6px; color:#333; font-size:12px; display:flex; align-items:flex-end; justify-content:center; padding-bottom:8px; }
+  .bk { position:absolute; top:0; height:58%; width:calc(100% / 16); background:#111; border-radius:0 0 5px 5px; color:#ddd; font-size:11px; display:flex; align-items:flex-end; justify-content:center; padding-bottom:6px; z-index:2; }
+  .wk.down, .bk.down { background:var(--acc); color:#06121f; }
+  .hint { font-size:12px; color:var(--dim); margin-top:8px; }
+  .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+  @media (max-width: 760px) { .voices { grid-template-columns: repeat(2, 1fr); } .grid2 { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>ESP Synth</h1>
+  <button id="connect">Connect board</button>
+  <button id="disconnect" disabled>Disconnect</button>
+  <span id="status">Not connected. Use Chrome or Edge.</span>
+</header>
+
+<main>
+  <section>
+    <h2>Keyboard</h2>
+    <div class="row" style="margin-bottom:10px">
+      <span class="hint">Octave</span>
+      <button data-oct="-1">-</button>
+      <span id="oct">C4</span>
+      <button data-oct="1">+</button>
+      <span class="hint" style="margin-left:auto">Computer keys: A W S E D F T G Y H U J K. Up to 4 notes at once.</span>
+    </div>
+    <div class="keys" id="keys"></div>
+  </section>
+
+  <section>
+    <h2>Voices</h2>
+    <div class="voices" id="voices"></div>
+    <div class="hint">Click a voice to select it. Keys play on free voices. Sliders and wave buttons change the selected voice.</div>
+  </section>
+
+  <section>
+    <h2>Global</h2>
+    <div class="grid2">
+      <div>
+        <label>Sync mode</label>
+        <select id="sync">
+          <option value="phase">Phase reset (rising edge on GPIO17)</option>
+          <option value="tempo">Tempo (follow clock)</option>
+        </select>
+      </div>
+      <div>
+        <label>Pot 1 unit (when pots are in control)</label>
+        <select id="pitch">
+          <option value="notes">Notes</option>
+          <option value="hz">Hz</option>
+        </select>
+      </div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button id="status-btn">Read status</button>
+      <button id="free-all">Free all overrides (give pots back)</button>
+      <button id="panic">All voices off</button>
+    </div>
+    <div class="hint">Overrides come from this UI. Turning a pot takes that parameter back.</div>
+  </section>
+
+  <section>
+    <h2>Log</h2>
+    <div id="log" style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--dim);max-height:160px;overflow:auto;white-space:pre-wrap"></div>
+  </section>
+</main>
+
+<script>
+(() => {
+  // ---------- constants ----------
+  const WAVES = [['saw','SAW'], ['square','SQR'], ['tri','TRI']];
+  const KEYMAP = { a:0, w:1, s:2, e:3, d:4, f:5, t:6, g:7, y:8, h:9, u:10, j:11, k:12 };
+  const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  const noteName = m => NOTE_NAMES[m % 12] + (Math.floor(m / 12) - 1);
+
+  // ---------- state ----------
+  let port = null, reader = null, writer = null, readLoopRunning = false;
+  let base = 60;                              // C4 at the left edge of the keyboard
+  const voices = [0,1,2,3].map(() => ({ active:false, wave:'saw', level:0.5, detune:0, hz:0, note:null, hold:null }));
+  let selected = 0;
+  const held = new Map();                     // midi -> { voice, t }
+  const pendingTimers = {};
+  const queue = [];
+  let busy = false;
+  let lineBuf = '';
+
+  // ---------- serial ----------
+  const $ = id => document.getElementById(id);
+  const log = (msg) => {
+    const el = $('log');
+    el.textContent += msg + '\n';
+    el.scrollTop = el.scrollHeight;
+    if (el.textContent.length > 8000) el.textContent = el.textContent.slice(-6000);
+  };
+  const setStatus = (msg, cls='') => { const s = $('status'); s.textContent = msg; s.className = cls; };
+
+  async function connect() {
+    if (!('serial' in navigator)) { setStatus('Web Serial not available. Use Chrome or Edge.', 'err'); return; }
+    try {
+      port = await navigator.serial.requestPort({ filters: [{ usbVendorId: 0x303a }] });
+      await port.open({ baudRate: 115200 });
+      writer = port.writable.getWriter();
+      setStatus('Connected', 'ok');
+      $('connect').disabled = true; $('disconnect').disabled = false;
+      readLoop();
+      await sleep(300);
+      sendRaw('status', false);
+    } catch (e) {
+      setStatus('Connect failed: ' + e.message, 'err');
+    }
+  }
+
+  async function disconnect() {
+    readLoopRunning = false;
+    try { if (reader) await reader.cancel(); } catch (_) {}
+    try { if (writer) writer.releaseLock(); } catch (_) {}
+    try { if (port) await port.close(); } catch (_) {}
+    port = reader = writer = null;
+    $('connect').disabled = false; $('disconnect').disabled = true;
+    setStatus('Disconnected');
+  }
+
+  async function readLoop() {
+    readLoopRunning = true;
+    const decoder = new TextDecoder();
+    reader = port.readable.getReader();
+    try {
+      while (readLoopRunning) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        lineBuf += decoder.decode(value, { stream: true });
+        let idx;
+        while ((idx = lineBuf.indexOf('\n')) >= 0) {
+          const line = lineBuf.slice(0, idx).replace(/\r$/, '');
+          lineBuf = lineBuf.slice(idx + 1);
+          handleLine(line);
+        }
+      }
+    } catch (e) {
+      if (readLoopRunning) setStatus('Serial read error: ' + e.message, 'err');
+    } finally {
+      try { reader.releaseLock(); } catch (_) {}
+    }
+  }
+
+  // Commands that get an OK/ERR reply go through the queue, one at a time.
+  function send(line) {
+    return new Promise(resolve => { queue.push({ line, resolve }); pump(); });
+  }
+  function pump() {
+    if (busy || !queue.length || !writer) return;
+    busy = true;
+    const job = queue.shift();
+    current = job;
+    writeLine(job.line);
+    job.timer = setTimeout(() => finish(), 800);   // safety: move on if no reply
+  }
+  let current = null;
+  function finish(reply) {
+    if (!current) return;
+    clearTimeout(current.timer);
+    const job = current; current = null; busy = false;
+    job.resolve(reply || 'timeout');
+    pump();
+  }
+  async function writeLine(line) {
+    try { await writer.write(new TextEncoder().encode(line + '\n')); }
+    catch (e) { setStatus('Write failed: ' + e.message, 'err'); finish('error'); }
+  }
+  // Fire-and-forget (status and help print multiple lines without OK).
+  function sendRaw(line) { if (writer) writeLine(line); }
+
+  function handleLine(line) {
+    if (!line) return;
+    if (line === 'OK') { log('ok'); finish('OK'); return; }
+    if (line.startsWith('ERR')) { log(line); finish(line); return; }
+    const m = line.match(/^v(\d) (on |off) (SAW|SQR|TRI) hz=([\d.]+) level=([\d.]+) detune=([+-]?\d+)c/);
+    if (m) {
+      const v = voices[parseInt(m[1],10)-1];
+      v.active = m[2] === 'on '; v.wave = m[3] === 'SAW' ? 'saw' : m[3] === 'SQR' ? 'square' : 'tri';
+      v.hz = parseFloat(m[4]); v.level = parseFloat(m[5]); v.detune = parseInt(m[6],10);
+      renderVoices(); return;
+    }
+    const s = line.match(/^selected=(\d) sync=(\w+) pitch=(\w+)/);
+    if (s) { $('sync').value = s[2]; $('pitch').value = s[3]; return; }
+    log(line);
+  }
+
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  // ---------- voices ----------
+  function renderVoices() {
+    const box = $('voices');
+    box.innerHTML = '';
+    voices.forEach((v, i) => {
+      const el = document.createElement('div');
+      el.className = 'voice' + (i === selected ? ' sel' : '');
+      el.innerHTML = `
+        <div class="top">
+          <span class="name">Voice ${i+1}</span>
+          <button class="pill-btn ${v.active ? 'pill on' : 'pill'}" data-act="${i}">${v.active ? 'ON' : 'OFF'}</button>
+        </div>
+        <div class="readout">${v.note !== null ? noteName(v.note) : '--'} ${v.hz ? v.hz.toFixed(1) + ' Hz' : ''}</div>
+        <div class="row wave-btns">${WAVES.map(([k,lab]) =>
+          `<button data-wave="${i}:${k}" class="${v.wave===k?'active':''}">${lab}</button>`).join('')}</div>
+        <label>Level <span>${v.level.toFixed(2)}</span></label>
+        <input type="range" min="0" max="1" step="0.01" value="${v.level}" data-level="${i}">
+        <label>Detune <span>${v.detune >= 0 ? '+' : ''}${v.detune} c</span></label>
+        <input type="range" min="-50" max="50" step="1" value="${v.detune}" data-detune="${i}">
+        <div class="row" style="margin-top:10px"><button data-free="${i}">Free (pots)</button></div>`;
+      el.addEventListener('click', e => {
+        if (e.target.closest('input, button')) return;
+        selected = i; renderVoices();
+      });
+      box.appendChild(el);
+    });
+  }
+
+  function setVoiceOn(i, on) {
+    voices[i].active = on;
+    send(`${on ? 'on' : 'off'} ${i+1}`);
+    renderVoices();
+  }
+
+  // Sliders: send the latest value after a short pause, so dragging does not flood the port.
+  function throttled(key, fn) {
+    clearTimeout(pendingTimers[key]);
+    pendingTimers[key] = setTimeout(fn, 60);
+  }
+
+  $('voices').addEventListener('click', e => {
+    const act = e.target.dataset.act, wave = e.target.dataset.wave, free = e.target.dataset.free;
+    if (act !== undefined) { const i = +act; setVoiceOn(i, !voices[i].active); selected = i; }
+    if (wave !== undefined) {
+      const [i, w] = wave.split(':'); voices[+i].wave = w; selected = +i;
+      send(`wave ${+i+1} ${w === 'tri' ? 'tri' : w === 'square' ? 'square' : 'saw'}`);
+      renderVoices();
+    }
+    if (free !== undefined) { send(`free ${+free+1}`); voices[+free].note = null; }
+  });
+  $('voices').addEventListener('input', e => {
+    const lv = e.target.dataset.level, dt = e.target.dataset.detune;
+    if (lv !== undefined) {
+      const i = +lv; voices[i].level = +e.target.value;
+      throttled('lv'+i, () => send(`level ${i+1} ${voices[i].level.toFixed(2)}`));
+    }
+    if (dt !== undefined) {
+      const i = +dt; voices[i].detune = +e.target.value;
+      throttled('dt'+i, () => send(`detune ${i+1} ${voices[i].detune}`));
+    }
+  });
+
+  // ---------- keyboard ----------
+  function buildKeys() {
+    const kb = $('keys');
+    kb.innerHTML = '';
+    const whites = [0,2,4,5,7,9,11,12];   // offsets for the 8 white keys in one octave (incl. top C)
+    const blacks = [1,3,6,8,10];          // black key offsets
+    whites.forEach((off, idx) => {
+      const el = document.createElement('div');
+      el.className = 'wk';
+      el.dataset.off = off;
+      el.style.left = `calc(${idx} * 100% / 8)`;
+      kb.appendChild(el);
+    });
+    // Black keys sit between white keys: positions in 16ths.
+    const blackPos = { 1: 1.5, 3: 3.5, 6: 7.5, 8: 9.5, 10: 11.5 };   // left edge in 16ths; each key is 1/16 wide, centred on a boundary
+    blacks.forEach(off => {
+      const el = document.createElement('div');
+      el.className = 'bk';
+      el.dataset.off = off;
+      el.style.left = `calc(${blackPos[off]} * 100% / 16)`;
+      kb.appendChild(el);
+    });
+    updateKeyLabels();
+  }
+
+  function updateKeyLabels() {
+    document.querySelectorAll('#keys .wk, #keys .bk').forEach(el => {
+      const m = base + +el.dataset.off;
+      el.textContent = noteName(m);
+    });
+    $('oct').textContent = noteName(base);
+  }
+
+  function noteOn(midi, el) {
+    if (held.has(midi)) return;
+    // Find a voice that is not holding a note; otherwise steal the oldest.
+    const used = new Set([...held.values()].map(h => h.voice));
+    let v = [0,1,2,3].find(i => !used.has(i));
+    if (v === undefined) {
+      let oldest = null;
+      for (const [m, h] of held) if (!oldest || h.t < oldest.h.t) oldest = { m, h };
+      v = oldest.h.voice;
+      held.delete(oldest.m);
+    }
+    held.set(midi, { voice: v, t: Date.now() });
+    voices[v].note = midi; voices[v].active = true;
+    if (el) el.classList.add('down');
+    send(`note ${v+1} ${midi}`).then(() => send(`on ${v+1}`));
+    renderVoices();
+  }
+
+  function noteOff(midi, el) {
+    const h = held.get(midi);
+    if (!h) return;
+    held.delete(midi);
+    if (el) el.classList.remove('down');
+    voices[h.voice].note = null; voices[h.voice].active = false;
+    send(`off ${h.voice+1}`);
+    renderVoices();
+  }
+
+  function bindKeys() {
+    $('keys').addEventListener('pointerdown', e => {
+      const el = e.target.closest('.wk, .bk'); if (!el) return;
+      el.setPointerCapture(e.pointerId);
+      noteOn(base + +el.dataset.off, el);
+      el._midi = base + +el.dataset.off;
+    });
+    $('keys').addEventListener('pointerup', e => {
+      const el = e.target.closest('.wk, .bk'); if (!el) return;
+      noteOff(base + +el.dataset.off, el);
+    });
+    $('keys').addEventListener('pointercancel', e => {
+      const el = e.target.closest('.wk, .bk'); if (!el) return;
+      noteOff(base + +el.dataset.off, el);
+    });
+  }
+
+  const pressedKeys = new Set();
+  window.addEventListener('keydown', e => {
+    if (e.repeat) return;
+    const k = e.key.toLowerCase();
+    if (!(k in KEYMAP) || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (document.activeElement && ['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+    pressedKeys.add(k);
+    const midi = base + KEYMAP[k];
+    const el = document.querySelector(`#keys [data-off="${KEYMAP[k]}"]`);
+    noteOn(midi, el);
+  });
+  window.addEventListener('keyup', e => {
+    const k = e.key.toLowerCase();
+    if (!(k in KEYMAP)) return;
+    const midi = base + KEYMAP[k];
+    const el = document.querySelector(`#keys [data-off="${KEYMAP[k]}"]`);
+    noteOff(midi, el);
+  });
+
+  document.querySelectorAll('button[data-oct]').forEach(b => b.addEventListener('click', () => {
+    base = Math.min(96, Math.max(24, base + 12 * +b.dataset.oct));
+    updateKeyLabels();
+  }));
+
+  // ---------- global controls ----------
+  $('connect').addEventListener('click', connect);
+  $('disconnect').addEventListener('click', disconnect);
+  $('sync').addEventListener('change', e => send(`sync ${e.target.value}`));
+  $('pitch').addEventListener('change', e => send(`pitch ${e.target.value}`));
+  $('status-btn').addEventListener('click', () => sendRaw('status'));
+  $('free-all').addEventListener('click', async () => {
+    for (let i = 1; i <= 4; i++) await send(`free ${i}`);
+    log('all overrides cleared');
+  });
+  $('panic').addEventListener('click', async () => {
+    held.clear();
+    for (let i = 1; i <= 4; i++) { voices[i-1].active = false; voices[i-1].note = null; await send(`off ${i}`); }
+    renderVoices();
+  });
+
+  // ---------- init ----------
+  buildKeys();
+  bindKeys();
+  renderVoices();
+  if (!('serial' in navigator)) $('connect').disabled = true;
+})();
+</script>
+</body>
+</html>
